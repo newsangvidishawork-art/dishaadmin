@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Disha Admin Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<style>
+body {
+  font-family: "Poppins", sans-serif;
+  background:#f3f4f6;
+  margin:0;
+  padding:20px;
+  color:#111827;
+}
+#logo {
+  display:block;
+  margin:50 auto 10px auto;
+  height:65px;
+}
+h1 {
+  text-align:center;
+  color:#2563eb;
+  font-size:30px;
+  margin-TOP:0px;
+}
+.summary-row {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap:15px;
+  max-width:1200px;
+  margin:20px auto;
+}
+.summary-card {
+  background:white;
+  text-align:center;
+  padding:15px;
+  border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  transition: transform .2s ease;
+}
+.summary-card:hover { transform:translateY(-5px); }
+.summary-card h3 {
+  margin:0;
+  color:#374151;
+  font-size:16px;
+}
+.summary-card p {
+  font-size:22px;
+  font-weight:600;
+  color:#2563eb;
+  margin-top:6px;
+}
+
+/* 🔹 Subject-wise Topper Grid */
+.topper-section {
+  max-width:1200px;
+  margin:25px auto;
+  background:white;
+  border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  padding:20px;
+}
+.topper-section h2 {
+  text-align:center;
+  margin-bottom:15px;
+  color:#111827;
+}
+.topper-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+  gap:15px;
+}
+.topper-card {
+  background:#f9fafb;
+  border-radius:12px;
+  padding:10px;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+  transition: transform .2s ease;
+}
+.topper-card:hover { transform:scale(1.05); }
+.topper-name {
+  font-weight:600;
+  color:#2563eb;
+  font-size:16px;
+}
+.topper-score {
+  font-size:14px;
+  color:#111827;
+}
+.topper-subject {
+  margin-top:6px;
+  font-size:13px;
+  color:#6b7280;
+  font-weight:500;
+}
+
+.dashboard {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap:20px;
+  justify-content:center;
+  max-width:1200px;
+  margin:auto;
+}
+.card {
+  background:white;
+  padding:18px;
+  border-radius:12px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.08);
+  transition:transform .2s ease;
+}
+.card:hover { transform:scale(1.02); }
+h2 {
+  font-size:18px;
+  margin-bottom:10px;
+  color:#1e293b;
+  text-align:center;
+}
+canvas { width:100%; max-height:360px; }
+.legendBox {
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  margin-top:10px;
+  flex-wrap:wrap;
+}
+.legendItem {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:13px;
+}
+.legendColor {
+  width:15px;
+  height:15px;
+  border-radius:3px;
+}
+</style>
+</head>
+<body>
+
+<img id="logo" src="https://www.dishagroup.in/logo.png" alt="Disha Logo">
+<h1>📊 Disha Online Exam - Admin Dashboard</h1>
+
+<!-- 🔹 Summary Cards -->
+<div class="summary-row">
+  <div class="summary-card"><h3>Total Students</h3><p id="totalCount">0</p></div>
+  <div class="summary-card"><h3>Total Pass</h3><p id="passCount">0</p></div>
+  <div class="summary-card"><h3>Total Fail</h3><p id="failCount">0</p></div>
+  <div class="summary-card"><h3>Pass %</h3><p id="passPercent">0%</p></div>
+  <div class="summary-card"><h3>Fail %</h3><p id="failPercent">0%</p></div>
+</div>
+
+<!-- 🔹 Subject Wise Topper Cards -->
+<div class="topper-section">
+  <h2>🏆 Subject Wise Toppers</h2>
+  <div id="topperGrid" class="topper-grid"></div>
+</div>
+
+<!-- 🔹 Graphs -->
+<div class="dashboard">
+  <div class="card"><h2>Student Participation by Subject</h2><canvas id="subjectChart"></canvas><div id="subjectLegend" class="legendBox"></div></div>
+  <div class="card"><h2>Pass vs Fail Overview</h2><canvas id="statusChart"></canvas><div id="statusLegend" class="legendBox"></div></div>
+  <div class="card"><h2>Average Marks by Subject</h2><canvas id="avgChart"></canvas><div id="avgLegend" class="legendBox"></div></div>
+  <div class="card"><h2>Score Distribution (All Students)</h2><canvas id="scoreChart"></canvas><div id="scoreLegend" class="legendBox"></div></div>
+  <div class="card"><h2>Subject-wise Pass %</h2><canvas id="subjectPassChart"></canvas><div id="subjectPassLegend" class="legendBox"></div></div>
+  <div class="card"><h2>Subject-wise Fail %</h2><canvas id="subjectFailChart"></canvas><div id="subjectFailLegend" class="legendBox"></div></div>
+</div>
+
+
+
+
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBKRDR8EvFwNL_k02B0S0Xdbt5hP4TXiSEfMpFnO6EtJc1uOZuoudEHqOWuF2lQP4FNg/exec";
+
+async function loadDashboard() {
+  const res = await fetch(`${SCRIPT_URL}?type=dashboard`);
+  const data = await res.json();
+  const rows = data.rows || [];
+  const total = rows.length;
+  const pass = rows.filter(r => (r.status || "").toUpperCase() === "PASS").length;
+  const fail = total - pass;
+  const passPercent = total ? ((pass / total) * 100).toFixed(1) : 0;
+  const failPercent = total ? ((fail / total) * 100).toFixed(1) : 0;
+
+  document.getElementById("totalCount").innerText = total;
+  document.getElementById("passCount").innerText = pass;
+  document.getElementById("failCount").innerText = fail;
+  document.getElementById("passPercent").innerText = passPercent + "%";
+  document.getElementById("failPercent").innerText = failPercent + "%";
+
+  const subjectCount={},subjectTotal={},subjectPass={},subjectFail={},subjectTopper={};
+  rows.forEach(r=>{
+    const subj=r.subject||"Unknown";
+    const name=r.name||"-";
+    const score=Number(r.score)||0;
+    const stat=(r.status||"FAIL").toUpperCase();
+    subjectCount[subj]=(subjectCount[subj]||0)+1;
+    subjectTotal[subj]=(subjectTotal[subj]||0)+score;
+    if(stat==="PASS") subjectPass[subj]=(subjectPass[subj]||0)+1;
+    else subjectFail[subj]=(subjectFail[subj]||0)+1;
+    if(!subjectTopper[subj]||score>subjectTopper[subj].score)
+      subjectTopper[subj]={name,score};
+  });
+
+  // ✅ Display Subject Wise Toppers
+  const topperGrid=document.getElementById("topperGrid");
+  topperGrid.innerHTML="";
+  Object.keys(subjectTopper).forEach(sub=>{
+    const t=subjectTopper[sub];
+    const div=document.createElement("div");
+    div.className="topper-card";
+    div.innerHTML=`
+      <div class="topper-name">${t.name || "-"}</div>
+      <div class="topper-score">Score: ${t.score}</div>
+      <div class="topper-subject">${sub}</div>
+    `;
+    topperGrid.appendChild(div);
+  });
+
+  const avgSubject={},passPercentSub={},failPercentSub={};
+  for(const s in subjectTotal){
+    avgSubject[s]=(subjectTotal[s]/subjectCount[s]).toFixed(1);
+    passPercentSub[s]=((subjectPass[s]||0)/subjectCount[s]*100).toFixed(1);
+    failPercentSub[s]=((subjectFail[s]||0)/subjectCount[s]*100).toFixed(1);
+  }
+
+  createChart("subjectChart","bar",Object.keys(subjectCount),Object.values(subjectCount),"Students","#3b82f6","subjectLegend");
+  createChart("statusChart","doughnut",["PASS","FAIL"],[pass,fail],"Status",["#16a34a","#dc2626"],"statusLegend");
+  createChart("avgChart","bar",Object.keys(avgSubject),Object.values(avgSubject),"Avg Marks","#f59e0b","avgLegend");
+  createChart("scoreChart","pie",["0-25","26-50","51-75","76-100"],getBuckets(rows),"Score Range",["#93c5fd","#60a5fa","#3b82f6","#1d4ed8"],"scoreLegend");
+  createChart("subjectPassChart","bar",Object.keys(passPercentSub),Object.values(passPercentSub),"Pass %","#22c55e","subjectPassLegend");
+  createChart("subjectFailChart","bar",Object.keys(failPercentSub),Object.values(failPercentSub),"Fail %","#ef4444","subjectFailLegend");
+}
+
+function getBuckets(rows){
+  const b=[0,0,0,0];
+  rows.forEach(r=>{
+    const s=Number(r.score)||0;
+    if(s<=25)b[0]++;else if(s<=50)b[1]++;else if(s<=75)b[2]++;else b[3]++;
+  });
+  return b;
+}
+
+function createChart(id,type,labels,data,label,colors,legendId){
+  const ctx=document.getElementById(id);
+  if(ctx.chart)ctx.chart.destroy();
+  const chartColors=Array.isArray(colors)?colors:[colors];
+  const chart=new Chart(ctx,{
+    type,
+    data:{labels,datasets:[{label,data,backgroundColor:chartColors}]},
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{display:false},
+        datalabels:{color:"#111",anchor:type==="bar"?"end":"center",align:type==="bar"?"top":"center",font:{weight:"bold"},formatter:v=>v}
+      },
+      scales:type==="bar"?{y:{beginAtZero:true}}:{}
+    },
+    plugins:[ChartDataLabels]
+  });
+  ctx.chart=chart;
+  const legend=document.getElementById(legendId);
+  legend.innerHTML="";
+  labels.forEach((lbl,i)=>{
+    const color=chartColors[i%chartColors.length];
+    const div=document.createElement("div");
+    div.className="legendItem";
+    div.innerHTML=`<span class="legendColor" style="background:${color}"></span>${lbl}`;
+    legend.appendChild(div);
+  });
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

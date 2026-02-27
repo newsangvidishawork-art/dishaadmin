@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Disha Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<style>
+/* ---- ADMIN PROFILE BAR ---- */
+#profileBox {
+  position: fixed;
+  top: 35px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 8px 15px;
+  z-index: 1000;
+  display: none; /* hidden until login */
+}
+#profileBox img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #2563eb;
+  object-fit: cover;
+}
+#adminName {
+  font-weight: 600;
+  color: #1e3a8a;
+  font-size: 16px;
+}
+#logoutBtn {
+  background: #dc2626;
+  color: white;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 14px;
+}
+#logoutBtn:hover { background: #b91c1c; }
+
+/* ---- LOGIN CARD ---- */
+body {
+  font-family: "Poppins", sans-serif;
+  background:#f3f4f6;
+  margin:0;
+  padding:0;
+  color:#111827;
+}
+#logo { display:block; margin:0 auto 10px auto; height:65px; }
+
+/* ---- LOGIN SECTION ---- */
+#loginSection {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  background: linear-gradient(135deg, #dbeafe, #93c5fd);
+}
+#loginCard {
+  background:white;
+  width:90%;
+  max-width:420px;
+  padding:30px 25px;
+  border-radius:16px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.15);
+  text-align:center;
+}
+#loginCard h1 {
+  color:blue;
+  
+  margin-bottom:40px;
+  font-size:20px;
+}
+
+label {
+  display:block;
+  text-align:left;
+  margin:12px 0 4px;
+  font-weight:600;
+  color:#1e3a8a;
+}
+input {
+  width:100%;
+  padding:12px;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  font-size:15px;
+}
+button {
+  width:100%;
+  background:#2563eb;
+  color:#fff;
+  font-weight:600;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  cursor:pointer;
+  margin-top:20px;
+}
+button:hover { background:#1d4ed8; }
+#msg { margin-top:15px; font-weight:600; }
+
+/* ---- DASHBOARD ---- */
+#dashboardSection { display:none; padding:20px; }
+h1 { text-align:center; color:#2563eb; font-size:28px; margin:10px 0 25px; }
+.summary-row {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap:15px;
+  max-width:1200px;
+  margin:20px auto;
+}
+.summary-card {
+  background:white;
+  text-align:center;
+  padding:15px;
+  border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+}
+.summary-card h3 { margin:0; color:#374151; font-size:16px; }
+.summary-card p { font-size:22px; font-weight:600; color:#2563eb; margin-top:6px; }
+
+.topper-section {
+  max-width:1200px;
+  margin:25px auto;
+  background:white;
+  border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  padding:20px;
+}
+.topper-section h2 {
+  text-align:center;
+  margin-bottom:15px;
+  color:#111827;
+}
+.topper-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+  gap:15px;
+}
+.topper-card {
+  background:#f9fafb;
+  border-radius:12px;
+  padding:10px;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+}
+.topper-name { font-weight:600; color:#2563eb; font-size:16px; }
+
+.dashboard {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap:20px;
+  justify-content:center;
+  max-width:1200px;
+  margin:auto;
+}
+.card {
+  background:white;
+  padding:18px;
+  border-radius:12px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.08);
+}
+#logo1{ margin:20px; }
+canvas { width:100%; max-height:360px; }
+.legendBox { display:flex; justify-content:center; gap:15px; margin-top:10px; flex-wrap:wrap; }
+.legendItem { display:flex; align-items:center; gap:6px; font-size:13px; }
+.legendColor { width:15px; height:15px; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- 🔹 ADMIN PROFILE BAR -->
+<div id="profileBox">
+  <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Admin Profile">
+  <div id="adminName">Admin</div>
+  <button id="logoutBtn" onclick="logoutAdmin()">Logout</button>
+</div>
+
+<!-- 🔹 LOGIN SECTION -->
+<div id="loginSection">
+  <div id="loginCard">
+    <img id="logo" src="https://www.dishagroup.in/logo.png" alt="Disha Logo">
+    <h1>Admin Login</h1>
+    <label>Email ID</label>
+    <input type="email" id="loginEmail" placeholder="Enter your email">
+    <label>Password</label>
+    <input type="password" id="loginPassword" placeholder="Enter password">
+    <button onclick="loginAdmin()">Login</button>
+    <div id="msg"></div>
+  </div>
+</div>
+
+<!-- 🔹 DASHBOARD SECTION -->
+<div id="dashboardSection">
+  <img id="logo1" src="https://www.dishagroup.in/logo.png" alt="Disha Logo">
+  <h1>📊 Disha Online Exam - Admin Dashboard</h1>
+
+  <div class="summary-row">
+    <div class="summary-card"><h3>Total Students</h3><p id="totalCount">0</p></div>
+    <div class="summary-card"><h3>Total Pass</h3><p id="passCount">0</p></div>
+    <div class="summary-card"><h3>Total Fail</h3><p id="failCount">0</p></div>
+    <div class="summary-card"><h3>Pass %</h3><p id="passPercent">0%</p></div>
+    <div class="summary-card"><h3>Fail %</h3><p id="failPercent">0%</p></div>
+  </div>
+
+  <div class="topper-section">
+    <h2>🏆 Subject Wise Toppers</h2>
+    <div id="topperGrid" class="topper-grid"></div>
+  </div>
+
+  <div class="dashboard">
+    <div class="card"><h2>Student Participation by Subject</h2><canvas id="subjectChart"></canvas><div id="subjectLegend" class="legendBox"></div></div>
+    <div class="card"><h2>Pass vs Fail Overview</h2><canvas id="statusChart"></canvas><div id="statusLegend" class="legendBox"></div></div>
+    <div class="card"><h2>Average Marks by Subject</h2><canvas id="avgChart"></canvas><div id="avgLegend" class="legendBox"></div></div>
+    <div class="card"><h2>Score Distribution (All Students)</h2><canvas id="scoreChart"></canvas><div id="scoreLegend" class="legendBox"></div></div>
+    <div class="card"><h2>Subject-wise Pass %</h2><canvas id="subjectPassChart"></canvas><div id="subjectPassLegend" class="legendBox"></div></div>
+    <div class="card"><h2>Subject-wise Fail %</h2><canvas id="subjectFailChart"></canvas><div id="subjectFailLegend" class="legendBox"></div></div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBKRDR8EvFwNL_k02B0S0Xdbt5hP4TXiSEfMpFnO6EtJc1uOZuoudEHqOWuF2lQP4FNg/exec";
+
+// ✅ AUTO LOGIN CHECK (Keeps Session)
+window.addEventListener("load", () => {
+  const user = localStorage.getItem("adminUser");
+  if (user) {
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("dashboardSection").style.display = "block";
+    document.getElementById("profileBox").style.display = "flex";
+    document.getElementById("adminName").innerText = user;
+    loadDashboard();
+  }
+});
+
+// ✅ LOGIN FUNCTION
+function loginAdmin() {
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass = document.getElementById("loginPassword").value.trim();
+  const msg = document.getElementById("msg");
+
+  if (!email || !pass) {
+    msg.innerHTML = "⚠️ Please enter both Email and Password.";
+    msg.style.color = "red";
+    return;
+  }
+
+  if ((email === "Disha@2026" && pass === "2026") || (email === "sachin411027@gmail.com" && pass === "411027")) {
+    msg.innerHTML = "✅ Login Successful! Loading Dashboard...";
+    msg.style.color = "green";
+    localStorage.setItem("adminUser", email === "Disha@2026" ? "Disha Admin" : "Sachin Admin");
+    setTimeout(() => {
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("dashboardSection").style.display = "block";
+      document.getElementById("profileBox").style.display = "flex";
+      document.getElementById("adminName").innerText = localStorage.getItem("adminUser");
+      loadDashboard();
+    }, 800);
+  } else {
+    msg.innerHTML = "❌ Invalid Email or Password!";
+    msg.style.color = "red";
+  }
+}
+
+// ✅ LOGOUT FUNCTION
+function logoutAdmin() {
+  alert("You have been logged out successfully!");
+  localStorage.removeItem("adminUser");
+  document.getElementById("dashboardSection").style.display = "none";
+  document.getElementById("profileBox").style.display = "none";
+  document.getElementById("loginSection").style.display = "flex";
+  document.getElementById("loginEmail").value="";
+  document.getElementById("loginPassword").value="";
+}
+
+// ✅ GOOGLE SHEET DASHBOARD LOADER (unchanged)
+async function loadDashboard() {
+  const res = await fetch(`${SCRIPT_URL}?type=dashboard`);
+  const data = await res.json();
+  const rows = data.rows || [];
+  const total = rows.length;
+  const pass = rows.filter(r => (r.status || "").toUpperCase() === "PASS").length;
+  const fail = total - pass;
+  const passPercent = total ? ((pass / total) * 100).toFixed(1) : 0;
+  const failPercent = total ? ((fail / total) * 100).toFixed(1) : 0;
+
+  document.getElementById("totalCount").innerText = total;
+  document.getElementById("passCount").innerText = pass;
+  document.getElementById("failCount").innerText = fail;
+  document.getElementById("passPercent").innerText = passPercent + "%";
+  document.getElementById("failPercent").innerText = failPercent + "%";
+
+  const subjectCount={},subjectTotal={},subjectPass={},subjectFail={},subjectTopper={};
+  rows.forEach(r=>{
+    const subj=r.subject||"Unknown";
+    const name=r.name||"-";
+    const score=Number(r.score)||0;
+    const stat=(r.status||"FAIL").toUpperCase();
+    subjectCount[subj]=(subjectCount[subj]||0)+1;
+    subjectTotal[subj]=(subjectTotal[subj]||0)+score;
+    if(stat==="PASS") subjectPass[subj]=(subjectPass[subj]||0)+1;
+    else subjectFail[subj]=(subjectFail[subj]||0)+1;
+    if(!subjectTopper[subj]||score>subjectTopper[subj].score)
+      subjectTopper[subj]={name,score};
+  });
+
+  // ✅ SUBJECT WISE TOPPERS
+  const topperGrid=document.getElementById("topperGrid");
+  topperGrid.innerHTML="";
+  Object.keys(subjectTopper).forEach(sub=>{
+    const t=subjectTopper[sub];
+    const div=document.createElement("div");
+    div.className="topper-card";
+    div.innerHTML=`<div class="topper-name">${t.name}</div><div>Score: ${t.score}</div><div>${sub}</div>`;
+    topperGrid.appendChild(div);
+  });
+
+  const avgSubject={},passPercentSub={},failPercentSub={};
+  for(const s in subjectTotal){
+    avgSubject[s]=(subjectTotal[s]/subjectCount[s]).toFixed(1);
+    passPercentSub[s]=((subjectPass[s]||0)/subjectCount[s]*100).toFixed(1);
+    failPercentSub[s]=((subjectFail[s]||0)/subjectCount[s]*100).toFixed(1);
+  }
+
+  createChart("subjectChart","bar",Object.keys(subjectCount),Object.values(subjectCount),"Students","#3b82f6","subjectLegend");
+  createChart("statusChart","doughnut",["PASS","FAIL"],[pass,fail],"Status",["#16a34a","#dc2626"],"statusLegend");
+  createChart("avgChart","bar",Object.keys(avgSubject),Object.values(avgSubject),"Avg Marks","#f59e0b","avgLegend");
+  createChart("scoreChart","pie",["0-25","26-50","51-75","76-100"],getBuckets(rows),"Score Range",["#93c5fd","#60a5fa","#3b82f6","#1d4ed8"],"scoreLegend");
+  createChart("subjectPassChart","bar",Object.keys(passPercentSub),Object.values(passPercentSub),"Pass %","#22c55e","subjectPassLegend");
+  createChart("subjectFailChart","bar",Object.keys(failPercentSub),Object.values(failPercentSub),"Fail %","#ef4444","subjectFailLegend");
+}
+
+function getBuckets(rows){
+  const b=[0,0,0,0];
+  rows.forEach(r=>{
+    const s=Number(r.score)||0;
+    if(s<=25)b[0]++;else if(s<=50)b[1]++;else if(s<=75)b[2]++;else b[3]++;
+  });
+  return b;
+}
+
+function createChart(id,type,labels,data,label,colors,legendId){
+  const ctx=document.getElementById(id);
+  if(ctx.chart)ctx.chart.destroy();
+  const chartColors=Array.isArray(colors)?colors:[colors];
+  const chart=new Chart(ctx,{
+    type,
+    data:{labels,datasets:[{label,data,backgroundColor:chartColors}]},
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{display:false},
+        datalabels:{
+          color:"#fff",
+          anchor:"center",
+          align:"center",
+          font:{weight:"bold",size:14} // increased font size
+        }
+      },
+      scales:type==="bar"?{y:{beginAtZero:true}}:{}
+    },
+    plugins:[ChartDataLabels]
+  });
+  ctx.chart=chart;
+  const legend=document.getElementById(legendId);
+  legend.innerHTML="";
+  labels.forEach((lbl,i)=>{
+    const color=chartColors[i%chartColors.length];
+    const div=document.createElement("div");
+    div.className="legendItem";
+    div.innerHTML=`<span class="legendColor" style="background:${color}"></span>${lbl}`;
+    legend.appendChild(div);
+  });
+}
+</script>
+</body>
+</html>
